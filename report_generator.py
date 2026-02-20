@@ -8,8 +8,6 @@ from io import BytesIO
 # BUILD SINGLE EXECUTIVE REPORT
 # ==============================
 
-st.header("📄 Download Executive Weekly Report")
-
 buffer = BytesIO()
 doc = SimpleDocTemplate(buffer, pagesize=pagesizes.letter)
 elements = []
