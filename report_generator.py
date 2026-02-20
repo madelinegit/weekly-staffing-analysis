@@ -4,94 +4,81 @@ from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.lib import pagesizes
 from io import BytesIO
 
-# ==============================
-# BUILD SINGLE EXECUTIVE REPORT
-# ==============================
 
-buffer = BytesIO()
-doc = SimpleDocTemplate(buffer, pagesize=pagesizes.letter)
-elements = []
-styles = getSampleStyleSheet()
+def generate_weekly_pdf(df, total_hours, senior_hours, hot_tub_hours, days_order):
 
-# Title
-elements.append(Paragraph("Weekly Staffing Analysis Report", styles["Heading1"]))
-elements.append(Spacer(1, 12))
+    buffer = BytesIO()
+    doc = SimpleDocTemplate(buffer, pagesize=pagesizes.letter)
+    elements = []
+    styles = getSampleStyleSheet()
 
-# Weekly Summary Section
-elements.append(Paragraph("Weekly Summary (Monday–Saturday)", styles["Heading2"]))
-elements.append(Spacer(1, 8))
+    elements.append(Paragraph("Weekly Staffing Analysis Report", styles["Heading1"]))
+    elements.append(Spacer(1, 12))
 
-weekly_data = [
-    ["Total Weekly Labor Hours", round(total_hours, 2)],
-    ["Senior Preferred Hours", round(senior_hours, 2)],
-    ["Hot Tub Hours", round(hot_tub_hours, 2)],
-]
+    weekly_data = [
+        ["Total Weekly Labor Hours", round(total_hours, 2)],
+        ["Senior Preferred Hours", round(senior_hours, 2)],
+        ["Hot Tub Hours", round(hot_tub_hours, 2)],
+    ]
 
-weekly_table = Table(weekly_data)
-weekly_table.setStyle(TableStyle([
-    ("BACKGROUND", (0,0), (-1,0), colors.lightgrey),
-    ("GRID", (0,0), (-1,-1), 0.5, colors.grey),
-]))
-elements.append(weekly_table)
-elements.append(Spacer(1, 20))
+    weekly_table = Table(weekly_data)
+    weekly_table.setStyle(TableStyle([
+        ("GRID", (0, 0), (-1, -1), 0.5, colors.grey),
+    ]))
 
-# Daily Sections
-for day in days_order:
+    elements.append(weekly_table)
+    elements.append(Spacer(1, 20))
 
-    day_df = df[df["Day Name"] == day]
+    for day in days_order:
 
-    if not day_df.empty:
+        day_df = df[df["Day Name"] == day]
 
-        actual_date = day_df["Display Date"].iloc[0]
+        if not day_df.empty:
 
-        elements.append(Paragraph(f"{day} {actual_date}", styles["Heading3"]))
-        elements.append(Spacer(1, 8))
+            actual_date = day_df["Display Date"].iloc[0]
 
-        daily_total = round(day_df["Hours"].sum(), 2)
-        daily_senior = round(day_df[day_df["Senior Preferred"]]["Hours"].sum(), 2)
+            elements.append(Paragraph(f"{day} {actual_date}", styles["Heading3"]))
+            elements.append(Spacer(1, 8))
 
-        day_summary_data = [
-            ["Total Hours", daily_total],
-            ["Senior Preferred Hours", daily_senior]
-        ]
+            daily_total = round(day_df["Hours"].sum(), 2)
+            daily_senior = round(day_df[day_df["Senior Preferred"]]["Hours"].sum(), 2)
 
-        day_summary_table = Table(day_summary_data)
-        day_summary_table.setStyle(TableStyle([
-            ("GRID", (0,0), (-1,-1), 0.5, colors.grey),
-        ]))
+            summary_data = [
+                ["Total Hours", daily_total],
+                ["Senior Preferred Hours", daily_senior],
+            ]
 
-        elements.append(day_summary_table)
-        elements.append(Spacer(1, 10))
+            summary_table = Table(summary_data)
+            summary_table.setStyle(TableStyle([
+                ("GRID", (0, 0), (-1, -1), 0.5, colors.grey),
+            ]))
 
-        # Task Type Breakdown
-        task_breakdown = (
-            day_df.groupby("Task Type")["Hours"]
-            .sum()
-            .reset_index()
-        )
+            elements.append(summary_table)
+            elements.append(Spacer(1, 10))
 
-        table_data = [["Task Type", "Hours"]]
+            task_breakdown = (
+                day_df.groupby("Task Type")["Hours"]
+                .sum()
+                .reset_index()
+            )
 
-        for _, row in task_breakdown.iterrows():
-            table_data.append([row["Task Type"], round(row["Hours"], 2)])
+            table_data = [["Task Type", "Hours"]]
 
-        task_table = Table(table_data)
-        task_table.setStyle(TableStyle([
-            ("BACKGROUND", (0,0), (-1,0), colors.lightgrey),
-            ("GRID", (0,0), (-1,-1), 0.5, colors.grey),
-        ]))
+            for _, row in task_breakdown.iterrows():
+                table_data.append([row["Task Type"], round(row["Hours"], 2)])
 
-        elements.append(task_table)
-        elements.append(Spacer(1, 20))
+            task_table = Table(table_data)
+            task_table.setStyle(TableStyle([
+                ("BACKGROUND", (0, 0), (-1, 0), colors.lightgrey),
+                ("GRID", (0, 0), (-1, -1), 0.5, colors.grey),
+            ]))
 
-doc.build(elements)
+            elements.append(task_table)
+            elements.append(Spacer(1, 20))
 
-pdf = buffer.getvalue()
-buffer.close()
+    doc.build(elements)
 
-st.download_button(
-    label="Download Full Weekly Executive Report (PDF)",
-    data=pdf,
-    file_name="weekly_staffing_report.pdf",
-    mime="application/pdf"
-)
+    pdf = buffer.getvalue()
+    buffer.close()
+
+    return pdf
