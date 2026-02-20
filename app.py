@@ -1,6 +1,8 @@
 import streamlit as st
 import pandas as pd
 
+from report_generator import generate_weekly_pdf
+
 st.set_page_config(page_title="Weekly Staffing Analysis", layout="wide")
 
 st.title("Weekly Staffing Analysis Dashboard")
@@ -139,3 +141,20 @@ if uploaded_file:
             st.dataframe(task_breakdown)
 
     st.success("Daily & Weekly Analysis Complete")
+
+st.header("📄 Download Executive Weekly Report")
+
+pdf = generate_weekly_pdf(
+    df,
+    total_hours,
+    senior_hours,
+    hot_tub_hours,
+    days_order
+)
+
+st.download_button(
+    label="Download Full Weekly Executive Report (PDF)",
+    data=pdf,
+    file_name="weekly_staffing_report.pdf",
+    mime="application/pdf"
+)
