@@ -1,6 +1,5 @@
 import streamlit as st
 import pandas as pd
-
 from report_generator import generate_weekly_pdf
 
 st.set_page_config(page_title="Weekly Staffing Analysis", layout="wide")
@@ -69,16 +68,13 @@ if uploaded_file:
         if "walk thru" in title:
             return "Walk Thru", 0.5, False
 
-        return None, 0, False  # REMOVE Other entirely
+        return None, 0, False
 
     df[["Task Type", "Hours", "Senior Preferred"]] = df["Task Title"].apply(
         lambda x: pd.Series(categorize_task(x))
     )
 
-    # Remove uncategorized tasks
     df = df[df["Task Type"].notnull()]
-
-    # Monday–Saturday only
     df = df[df["Due Date"].dt.weekday < 6]
 
     # ==============================
@@ -142,19 +138,23 @@ if uploaded_file:
 
     st.success("Daily & Weekly Analysis Complete")
 
-st.header("📄 Download Executive Weekly Report")
+    # ==============================
+    # PDF DOWNLOAD (MUST BE INSIDE BLOCK)
+    # ==============================
 
-pdf = generate_weekly_pdf(
-    df,
-    total_hours,
-    senior_hours,
-    hot_tub_hours,
-    days_order
-)
+    st.header("📄 Download Executive Weekly Report")
 
-st.download_button(
-    label="Download Full Weekly Executive Report (PDF)",
-    data=pdf,
-    file_name="weekly_staffing_report.pdf",
-    mime="application/pdf"
-)
+    pdf = generate_weekly_pdf(
+        df,
+        total_hours,
+        senior_hours,
+        hot_tub_hours,
+        days_order
+    )
+
+    st.download_button(
+        label="Download Full Weekly Executive Report (PDF)",
+        data=pdf,
+        file_name="weekly_staffing_report.pdf",
+        mime="application/pdf"
+    )
