@@ -50,7 +50,7 @@ if uploaded_file:
         ]):
             return "Hot Tub - Regular", 0.5, False
 
-        if "dump" in title or "scrub" in title:
+        if "dump" in title or "scrub" or "d&s" in title:
             return "Hot Tub - Dump & Scrub", 1.5, False
 
         if "post rental inspection" in title:
