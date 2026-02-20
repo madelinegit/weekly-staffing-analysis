@@ -1,8 +1,16 @@
-from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
+from reportlab.platypus import (
+    SimpleDocTemplate,
+    Paragraph,
+    Spacer,
+    Table,
+    TableStyle,
+    Image
+)
 from reportlab.lib import colors
 from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.lib import pagesizes
 from io import BytesIO
+import matplotlib.pyplot as plt
 
 
 def generate_weekly_pdf(df, total_hours, senior_hours, hot_tub_hours, days_order):
@@ -12,8 +20,16 @@ def generate_weekly_pdf(df, total_hours, senior_hours, hot_tub_hours, days_order
     elements = []
     styles = getSampleStyleSheet()
 
+    # ==============================
+    # TITLE
+    # ==============================
+
     elements.append(Paragraph("Weekly Staffing Analysis Report", styles["Heading1"]))
     elements.append(Spacer(1, 12))
+
+    # ==============================
+    # WEEKLY SUMMARY TABLE
+    # ==============================
 
     weekly_data = [
         ["Total Weekly Labor Hours", round(total_hours, 2)],
@@ -29,6 +45,36 @@ def generate_weekly_pdf(df, total_hours, senior_hours, hot_tub_hours, days_order
     elements.append(weekly_table)
     elements.append(Spacer(1, 20))
 
+    # ==============================
+    # TOTAL HOURS PER DAY GRAPH
+    # ==============================
+
+    daily_totals = (
+        df.groupby("Day Name")["Hours"]
+        .sum()
+        .reindex(days_order)
+        .fillna(0)
+    )
+
+    plt.figure()
+    daily_totals.plot(kind="bar")
+    plt.title("Total Labor Hours Per Day")
+    plt.xlabel("Day")
+    plt.ylabel("Hours")
+    plt.tight_layout()
+
+    img_buffer = BytesIO()
+    plt.savefig(img_buffer, format="png")
+    plt.close()
+    img_buffer.seek(0)
+
+    elements.append(Image(img_buffer, width=400, height=250))
+    elements.append(Spacer(1, 25))
+
+    # ==============================
+    # DAILY BREAKDOWN SECTIONS
+    # ==============================
+
     for day in days_order:
 
         day_df = df[df["Day Name"] == day]
@@ -41,7 +87,9 @@ def generate_weekly_pdf(df, total_hours, senior_hours, hot_tub_hours, days_order
             elements.append(Spacer(1, 8))
 
             daily_total = round(day_df["Hours"].sum(), 2)
-            daily_senior = round(day_df[day_df["Senior Preferred"]]["Hours"].sum(), 2)
+            daily_senior = round(
+                day_df[day_df["Senior Preferred"]]["Hours"].sum(), 2
+            )
 
             summary_data = [
                 ["Total Hours", daily_total],
@@ -74,7 +122,11 @@ def generate_weekly_pdf(df, total_hours, senior_hours, hot_tub_hours, days_order
             ]))
 
             elements.append(task_table)
-            elements.append(Spacer(1, 20))
+            elements.append(Spacer(1, 25))
+
+    # ==============================
+    # BUILD PDF
+    # ==============================
 
     doc.build(elements)
 
