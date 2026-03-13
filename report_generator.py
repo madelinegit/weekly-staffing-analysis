@@ -31,7 +31,7 @@ def generate_weekly_pdf(df, total_hours, senior_hours, hot_tub_hours, days_order
     weekly_data = [
         ["Total Weekly Labor Hours", round(total_hours, 2)],
         ["Senior Preferred Hours", round(senior_hours, 2)],
-        ["Hot Tub Hours", round(hot_tub_hours, 2)],
+        ["Regular Hours", round(hot_tub_hours, 2)],
     ]
     weekly_table = Table(weekly_data)
     weekly_table.setStyle(TableStyle([
