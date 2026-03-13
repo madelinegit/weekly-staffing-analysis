@@ -84,12 +84,12 @@ if uploaded_file:
 
     total_hours = df["Hours"].sum()
     senior_hours = df[df["Senior Preferred"]]["Hours"].sum()
-    hot_tub_hours = df[df["Task Type"].str.contains("Hot Tub")]["Hours"].sum()
+    regular_hours = df[~df["Senior Preferred"]]["Hours"].sum()
 
     col1, col2, col3 = st.columns(3)
     col1.metric("Total Weekly Labor Hours", round(total_hours, 2))
     col2.metric("Senior Preferred Hours", round(senior_hours, 2))
-    col3.metric("Hot Tub Hours", round(hot_tub_hours, 2))
+    col3.metric("Regular Hours", round(regular_hours, 2))
 
     st.subheader("Weekly Hours by Task Type")
     weekly_summary = df.groupby("Task Type")["Hours"].sum().reset_index()
@@ -118,12 +118,12 @@ if uploaded_file:
 
             daily_total = day_df["Hours"].sum()
             daily_senior = day_df[day_df["Senior Preferred"]]["Hours"].sum()
-            daily_hot_tub = day_df[day_df["Task Type"].str.contains("Hot Tub")]["Hours"].sum()
+            daily_regular = day_df[~day_df["Senior Preferred"]]["Hours"].sum()
 
             col1, col2, col3 = st.columns(3)
             col1.metric("Total Hours", round(daily_total, 2))
             col2.metric("Senior Preferred Hours", round(daily_senior, 2))
-            col3.metric("Hot Tub Hours", round(daily_hot_tub, 2))
+            col3.metric("Regular Hours", round(daily_regular, 2))
 
             st.markdown("#### Hours by Task Type")
 
@@ -147,7 +147,7 @@ if uploaded_file:
         df,
         total_hours,
         senior_hours,
-        hot_tub_hours,
+        regular_hours,
         days_order
     )
 
