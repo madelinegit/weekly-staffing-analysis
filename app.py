@@ -118,7 +118,7 @@ if uploaded_file:
 
             daily_total = day_df["Hours"].sum()
             daily_senior = day_df[day_df["Senior Preferred"]]["Hours"].sum()
-            daily_hot_tub = day_df[day_df["Task Type"].str.contains("Regular")]["Hours"].sum()
+            daily_hot_tub = day_df[day_df["Task Type"].str.contains("Hot Tub")]["Hours"].sum()
 
             col1, col2, col3 = st.columns(3)
             col1.metric("Total Hours", round(daily_total, 2))
